@@ -1,0 +1,77 @@
+// protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative raft.proto
+
+syntax = "proto3";
+option go_package = "p5/pb";
+
+package pb;
+
+
+service Raft {
+    rpc Command(CommandRequest) returns (CommandReply);
+    rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesReply);
+    rpc RequestVote(VoteRequest) returns (VoteReply);
+    rpc Catchup(CatchupRequest) returns (CatchupReply);
+    rpc LeaderServerAddress(LeaderServerRequest) returns (LeaderServerReply);
+}
+
+message LeaderServerRequest {}
+
+message LeaderServerReply {
+    int32 leaderID = 1;
+}
+
+message CatchupRequest {
+    int32 index = 1;
+    string serverAddress = 2;
+}
+
+message CatchupReply {
+    string command = 1;
+    int32 term = 2;
+}
+
+message CommandRequest {
+    string command = 1; // The command to be applied
+    int32 leaderTerm = 2;
+}
+
+// CommandReply is sent by the Raft leader to the client with the result of the command execution
+message CommandReply {
+    bool success = 1; // Indicates if the command was successfully applied
+    string result = 2; // The result of the command, if applicable
+    int64 LogIndex = 3;
+    string leaderAdress = 4;
+}
+
+// AppendEntriesRequest is sent by the leader to replicate log entries and perform heartbeats
+message AppendEntriesRequest {
+    int32 term = 1; // Leader's term
+    int32 leaderId = 2; // Leader's ID
+    int32 prevLogIndex = 3; // Index of log entry immediately preceding new ones
+    int32 prevLogTerm = 4; // Term of prevLogIndex entry
+    string command = 5; // Log entries to store (empty for heartbeat)
+    int32 leaderCommit = 6; // Leader's commitIndex
+    bool heartbeat = 7;
+    string leaderAddress = 8;
+}
+
+// AppendEntriesReply is sent in response to AppendEntriesRequest
+message AppendEntriesReply {
+    int32 term = 1;
+    bool success = 2;
+    string command = 3;
+}
+
+// VoteRequest is sent by candidates during election
+message VoteRequest {
+    int32 term = 1; // Candidate’s term
+    int32 candidateId = 2; // Candidate requesting vote
+    int32 lastLogIndex = 3; // Index of candidate’s last log entry
+    int32 lastLogTerm = 4; // Term of candidate’s last log entry
+}
+
+// VoteReply is sent in response to VoteRequest
+message VoteReply {
+    int32 term = 1; // Current term, for candidate to update itself
+    bool voteGranted = 2; // True means candidate received vote
+}

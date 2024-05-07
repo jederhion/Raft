@@ -1,0 +1,30 @@
+version: "3"
+services:
+  raft0:
+    container_name: raft0
+    hostname: raft0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ulean:alpha
+    ports:
+      - 6000:7000
+    volumes:
+      - './persist:/tmp'
+  raft1:
+    container_name: raft1
+    hostname: raft1
+    image: ulean:alpha
+    ports:
+      - 6001:7000
+    volumes:
+      - './persist:/tmp'
+  raft2:
+    container_name: raft2
+    hostname: raft2
+    image: ulean:alpha
+    ports:
+      - 6002:7000
+    volumes:
+      - './persist:/tmp'
+
